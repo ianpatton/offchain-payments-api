@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 mongoose.set('strictQuery', false);
 
 import {Server} from '@hapi/hapi';
-import * as pkg from '../../package.json';
+import * as pkg from '../package.json';
 
 export const plugin = {
   name: 'hapi-mongoose',
