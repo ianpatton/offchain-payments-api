@@ -22,6 +22,10 @@ export async function newPayment(req: Request, h: ResponseToolkit) {
     sig,
   } = <IPayment>req.payload;
 
+  if (BigInt(val) <= BigInt(0)) {
+    throw new Error('Cannot send zero');
+  }
+
   const fromChksum = getAddress(from);
   const tokenChksum = getAddress(token);
   const toChksum = getAddress(to);

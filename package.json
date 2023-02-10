@@ -1,7 +1,6 @@
 {
-  "name": "merkle-pay-api",
+  "name": "offchain-payments-api",
   "version": "1.0.0",
-  "description": "",
   "main": "index.js",
   "scripts": {
     "dev": "./node_modules/nodemon/bin/nodemon.js -e ts  --exec \"npm run start\"",
@@ -32,5 +31,6 @@
   },
   "engines": {
     "node": ">=16.0.0"
-  }
+  },
+  "description": ""
 }

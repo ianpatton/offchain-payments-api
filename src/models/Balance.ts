@@ -1,7 +1,7 @@
 import {Schema, model} from 'mongoose';
 
 export interface IBalance {
-  cid: string;
+  cid: number;
   a: string;
   t: string;
   b: string;
@@ -9,7 +9,7 @@ export interface IBalance {
 
 const schema = new Schema<IBalance>(
   {
-    cid: {type: String, required: true},
+    cid: {type: Number, required: true},
     a: {type: String, required: true},
     t: {type: String, required: true},
     b: {type: String, required: true},

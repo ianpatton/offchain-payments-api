@@ -13,7 +13,7 @@ export const routes = [
           cid: Joi.number().positive().required().description('The Chain ID'),
           type: Joi.string()
             .required()
-            .valid(['t', 'w'])
+            .valid('t', 'w')
             .description(
               'Type of transaction: "t" for transfer, or "w" for withdrawal'
             ),

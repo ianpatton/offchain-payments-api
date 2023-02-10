@@ -1,14 +1,14 @@
 import {Schema, model} from 'mongoose';
 
 export interface INonce {
-  cid: string;
+  cid: number;
   a: string;
   n: number;
 }
 
 const schema = new Schema<INonce>(
   {
-    cid: {type: String, required: true},
+    cid: {type: Number, required: true},
     a: {type: String, required: true},
     n: {type: Number, required: true, default: 0},
   },
