@@ -1,6 +1,7 @@
 import {server} from '@hapi/hapi';
-import {plugin as HapiMongoose} from './hapi-plugins/hapi-mongoose';
-import {routes as paymentRoutes} from './api/payment/routes';
+import {plugin as HapiPostgres} from './hapi-plugins/hapi-postgres';
+import {routes as transactionRoutes} from './api/transaction/routes';
+import {routes as walletRoutes} from './api/wallet/routes';
 
 export const service = server({
   port: 3000,
@@ -16,12 +17,13 @@ service.route({
   },
 });
 
-service.route(paymentRoutes);
+service.route(transactionRoutes);
+service.route(walletRoutes);
 
 let stopping = false;
 
 export const start = async () => {
-  await service.register([HapiMongoose]);
+  await service.register([HapiPostgres]);
   await service.start();
 
   console.log('Server running on %s', service.info.uri);

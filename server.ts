@@ -1,3 +1,6 @@
+import * as dotenv from 'dotenv';
+dotenv.config();
+
 import {start, stop} from './service';
 
 process.on('SIGTERM', stop);
