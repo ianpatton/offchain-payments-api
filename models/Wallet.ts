@@ -1,16 +1,27 @@
 import {getAddress, isAddress} from 'ethers';
-import {DataTypes, Sequelize} from 'sequelize';
+import {
+  DataTypes,
+  Sequelize,
+  Model,
+  CreationOptional,
+  InferAttributes,
+  InferCreationAttributes,
+} from 'sequelize';
 
-export interface IWallet {
-  cid: number;
+export interface WalletModel
+  extends Model<
+    InferAttributes<WalletModel>,
+    InferCreationAttributes<WalletModel>
+  > {
+  cid: bigint;
   t: string;
   a: string;
-  n: number;
-  b: string;
+  n: bigint;
+  b: bigint;
 }
 
 export const createWalletModel = function (sequelize: Sequelize) {
-  const Wallet = sequelize.define(
+  const WalletModel = sequelize.define<WalletModel>(
     'Wallet',
     {
       // Model attributes are defined here
@@ -50,5 +61,5 @@ export const createWalletModel = function (sequelize: Sequelize) {
     },
     {}
   );
-  return Wallet;
+  return WalletModel;
 };

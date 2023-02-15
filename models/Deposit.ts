@@ -1,8 +1,29 @@
-import {DataTypes, Sequelize} from 'sequelize';
+import {
+  DataTypes,
+  Sequelize,
+  Model,
+  CreationOptional,
+  InferAttributes,
+  InferCreationAttributes,
+} from 'sequelize';
 import {getAddress, isAddress, isHexString} from 'ethers';
 
+export interface DepositModel
+  extends Model<
+    InferAttributes<DepositModel>,
+    InferCreationAttributes<DepositModel>
+  > {
+  cid: bigint;
+  blockHash: string;
+  blockNumber: number;
+  transactionHash: string;
+  t: string;
+  to: string;
+  v: bigint;
+}
+
 export const createDepositModel = function (sequelize: Sequelize) {
-  const Deposit = sequelize.define(
+  const DepositModel = sequelize.define<DepositModel>(
     'Deposit',
     {
       cid: {
@@ -17,6 +38,10 @@ export const createDepositModel = function (sequelize: Sequelize) {
         validate: {
           isHexString: (x: string) => isHexString(x),
         },
+      },
+      blockNumber: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
       },
       transactionHash: {
         type: DataTypes.STRING(66),
@@ -58,5 +83,5 @@ export const createDepositModel = function (sequelize: Sequelize) {
       updatedAt: false,
     }
   );
-  return Deposit;
+  return DepositModel;
 };

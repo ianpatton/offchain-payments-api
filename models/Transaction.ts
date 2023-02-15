@@ -1,5 +1,12 @@
 import {getAddress, isAddress} from 'ethers';
-import {DataTypes, Sequelize} from 'sequelize';
+import {
+  DataTypes,
+  Sequelize,
+  Model,
+  CreationOptional,
+  InferAttributes,
+  InferCreationAttributes,
+} from 'sequelize';
 
 export interface ITransaction {
   cid: number; //chainId
@@ -8,6 +15,20 @@ export interface ITransaction {
   n: string; // nonce
   to: string; //  to
   v: string; //value transferred
+  s: string; //signature
+}
+
+export interface TransactionModel
+  extends Model<
+    InferAttributes<TransactionModel>,
+    InferCreationAttributes<TransactionModel>
+  > {
+  cid: bigint; //chainId
+  t: string; // token
+  f: string; // from
+  n: bigint; // nonce
+  to: string; //  to
+  v: bigint; //value transferred
   s: string; //signature
 }
 
@@ -44,7 +65,7 @@ export function getEIP712(doc: ITransaction) {
 }
 
 export const createTransactionModel = function (sequelize: Sequelize) {
-  const Transaction = sequelize.define(
+  const TransactionModel = sequelize.define<TransactionModel>(
     'Transaction',
     {
       // Model attributes are defined here
@@ -103,5 +124,5 @@ export const createTransactionModel = function (sequelize: Sequelize) {
       updatedAt: false,
     }
   );
-  return Transaction;
+  return TransactionModel;
 };

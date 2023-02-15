@@ -6,6 +6,7 @@ import {Model, ModelCtor, Sequelize} from 'sequelize';
 import * as abi from './contracts/MerkleVault.json';
 
 import {initModels} from './models';
+import {DepositModel} from './models/Deposit';
 
 const provider = getDefaultProvider('http://localhost:8545/');
 const contract = new Contract(
@@ -19,7 +20,10 @@ let currentBlockNumber = 1;
 let checking = false;
 
 const sequelize = new Sequelize(
-  `postgres://${process.env.POSTGRES_USER}:${process.env.POSTGRES_PASSWORD}@${process.env.POSTGRES_HOST}:${process.env.POSTGRES_PORT}/${process.env.POSTGRES_DB}`
+  `postgres://${process.env.POSTGRES_USER}:${process.env.POSTGRES_PASSWORD}@${process.env.POSTGRES_HOST}:${process.env.POSTGRES_PORT}/${process.env.POSTGRES_DB}`,
+  {
+    logging: false,
+  }
 );
 
 async function connect() {
@@ -30,32 +34,61 @@ async function connect() {
 }
 
 async function checkDeposits(
-  models: {
-    Wallet: ModelCtor<Model<any, any>>;
-    Transaction: ModelCtor<Model<any, any>>;
-    Deposit: ModelCtor<Model<any, any>>;
-  },
+  Deposit: ModelCtor<DepositModel>,
+  Wallet: ModelCtor<Model<any, any>>,
   tokenAddress: string
 ) {
   checking = true;
   const {chainId} = await provider.getNetwork();
   currentBlockNumber = await provider.getBlockNumber();
-  console.log(
-    'Checking events at height',
-    currentBlockNumber,
-    'since',
-    lastBlockNumber
-  );
+
+  const lastDeposit = await Deposit.findOne({
+    where: {
+      cid: chainId,
+      t: tokenAddress,
+    },
+    order: [['createdAt', 'DESC']],
+  });
+
+  if (lastDeposit) {
+    lastBlockNumber = lastDeposit.blockNumber;
+  }
+
+  const confirmedHeight = currentBlockNumber - 15;
+
+  if (lastBlockNumber + 1 <= confirmedHeight === false) {
+    checking = false;
+    return;
+  }
 
   const balance = await contract.balance(tokenAddress);
-  console.log(balance);
+
+  console.log(
+    'Chain ID',
+    chainId,
+    'Token',
+    tokenAddress,
+    'Balance',
+    balance,
+    'Current height',
+    currentBlockNumber,
+    'checking',
+    lastBlockNumber,
+    'to',
+    confirmedHeight
+  );
 
   const filter = contract.filters.NewDeposit();
   const events = await contract.queryFilter(
     filter,
-    lastBlockNumber,
-    currentBlockNumber - 15
+    lastBlockNumber + 1,
+    confirmedHeight
   );
+
+  if (!events.length) {
+    checking = false;
+    return;
+  }
 
   try {
     await sequelize.transaction(async transaction => {
@@ -67,6 +100,7 @@ async function checkDeposits(
         const depositRaw = {
           cid: chainId,
           blockHash: event.blockHash,
+          blockNumber: event.blockNumber,
           transactionHash: event.transactionHash,
           t: clone?.args[0],
           to: clone?.args[1],
@@ -74,7 +108,7 @@ async function checkDeposits(
           createdAt: new Date(),
         };
         console.log('Creating Deposit', depositRaw);
-        const deposit = await models.Deposit.create(depositRaw, {transaction});
+        const deposit = await Deposit.create(depositRaw, {transaction});
         console.log('Created deposit', deposit.toJSON());
 
         console.log('Checking for wallet', {
@@ -83,12 +117,12 @@ async function checkDeposits(
           a: clone?.args[1],
         });
 
-        await models.Wallet.findOrCreate({
+        await Wallet.findOrCreate({
           where: {cid: chainId, t: clone?.args[0], a: clone?.args[1]},
           transaction,
         });
         console.log('Incrementing wallet...');
-        const wallet = await models.Wallet.findOne({
+        const wallet = await Wallet.findOne({
           where: {cid: chainId, t: clone?.args[0], a: clone?.args[1]},
           transaction,
         });
@@ -112,7 +146,7 @@ async function checkDeposits(
       }
     });
 
-    lastBlockNumber = currentBlockNumber - 15;
+    lastBlockNumber = confirmedHeight;
   } catch (e) {
     console.error(e);
   }
@@ -123,7 +157,11 @@ async function checkDeposits(
 connect().then(models => {
   setInterval(async () => {
     if (!checking) {
-      await checkDeposits(models, '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512');
+      await checkDeposits(
+        models.Deposit,
+        models.Wallet,
+        '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512'
+      );
     }
   }, 5000);
 });
