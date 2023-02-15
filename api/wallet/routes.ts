@@ -1,20 +1,24 @@
 import * as Joi from 'joi';
 import {isAddress} from 'ethers';
 
-import {getNonce} from './controller';
+import {getWallet} from './controller';
 
 export const routes = [
   {
     method: 'GET',
-    path: '/api/nonce/{chainId}/{walletAddress}',
+    path: '/api/wallet/{chainId}/{tokenAddress}/{walletAddress}',
     config: {
-      handler: getNonce,
+      handler: getWallet,
       validate: {
         params: Joi.object({
           chainId: Joi.number()
             .positive()
             .required()
             .description('The Chain ID'),
+          tokenAddress: Joi.string()
+            .custom(a => isAddress(a), 'Not a valid address')
+            .required()
+            .description('The token contract address'),
           walletAddress: Joi.string()
             .custom(a => isAddress(a), 'Not a valid address')
             .required()

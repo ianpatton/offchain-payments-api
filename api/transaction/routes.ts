@@ -1,13 +1,13 @@
 import * as Joi from 'joi';
 import {isAddress, isHexString} from 'ethers';
-import {newPayment} from './controller';
+import {newTransaction} from './controller';
 
 export const routes = [
   {
     method: 'POST',
-    path: '/api/payment',
+    path: '/api/transaction',
     config: {
-      handler: newPayment,
+      handler: newTransaction,
       validate: {
         payload: Joi.object({
           cid: Joi.number().positive().required().description('The Chain ID'),
