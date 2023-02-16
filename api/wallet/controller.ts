@@ -6,6 +6,8 @@ import {IExtendedServerApplicationState} from '../../hapi-plugins/hapi-postgres'
 export async function getWallet(req: Request, h: ResponseToolkit) {
   const {chainId, tokenAddress, walletAddress} = req.params;
 
+  console.log(chainId, tokenAddress, walletAddress);
+
   const tokenChksum = getAddress(tokenAddress);
   const walletChksum = getAddress(walletAddress);
 

@@ -1,4 +1,4 @@
-import {getAddress, isAddress} from 'ethers';
+import {getAddress, isAddress, encodeBytes32String} from 'ethers';
 import {
   DataTypes,
   Sequelize,
@@ -24,6 +24,7 @@ export interface TransactionModel
     InferCreationAttributes<TransactionModel>
   > {
   cid: bigint; //chainId
+  type: 't' | 'w';
   t: string; // token
   f: string; // from
   n: bigint; // nonce
@@ -38,10 +39,10 @@ export function getEIP712(doc: ITransaction) {
       {name: 'name', type: 'string'},
       {name: 'version', type: 'string'},
       {name: 'chainId', type: 'uint256'},
-      {name: 'salt', type: 'bytes32'},
     ],
     Transfer: [
       {name: 'token', type: 'string'},
+      {name: 'nonce', type: 'string'},
       {name: 'to', type: 'string'},
       {name: 'value', type: 'string'},
     ],
@@ -52,12 +53,12 @@ export function getEIP712(doc: ITransaction) {
       name: `${process.env.EIP_DOMAIN}`,
       version: '1',
       chainId: doc.cid,
-      salt: Buffer.from(doc.n),
     },
     types,
     primaryType: <'Transfer' | 'EIP712Domain'>'Transfer',
     message: {
       token: doc.t,
+      nonce: doc.n,
       to: doc.to,
       value: doc.v,
     },
@@ -73,6 +74,16 @@ export const createTransactionModel = function (sequelize: Sequelize) {
         type: DataTypes.INTEGER,
         allowNull: false,
         primaryKey: true,
+      },
+      type: {
+        type: DataTypes.STRING(1),
+        allowNull: false,
+        primaryKey: true,
+        validate: {
+          isVal: (a: string) => {
+            return a === 't' || a === 'w';
+          },
+        },
       },
       t: {
         type: DataTypes.STRING(42),

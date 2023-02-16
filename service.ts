@@ -1,3 +1,6 @@
+import * as dotenv from 'dotenv';
+dotenv.config();
+
 import {server} from '@hapi/hapi';
 import {plugin as HapiPostgres} from './hapi-plugins/hapi-postgres';
 import {routes as transactionRoutes} from './api/transaction/routes';
@@ -21,6 +24,11 @@ service.route(transactionRoutes);
 service.route(walletRoutes);
 
 let stopping = false;
+
+export const init = async () => {
+  await service.register([HapiPostgres]);
+  await service.initialize();
+};
 
 export const start = async () => {
   await service.register([HapiPostgres]);

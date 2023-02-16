@@ -18,7 +18,10 @@ export const plugin = {
         const app = <IExtendedServerApplicationState>server.app;
         console.info('Creating db connection');
         const sequelize = new Sequelize(
-          `postgres://${process.env.POSTGRES_USER}:${process.env.POSTGRES_PASSWORD}@${process.env.POSTGRES_HOST}:${process.env.POSTGRES_PORT}/${process.env.POSTGRES_DB}`
+          `postgres://${process.env.POSTGRES_USER}:${process.env.POSTGRES_PASSWORD}@${process.env.POSTGRES_HOST}:${process.env.POSTGRES_PORT}/${process.env.POSTGRES_DB}`,
+          {
+            logging: false,
+          }
         );
         await sequelize.authenticate();
         initModels(sequelize);

@@ -3,6 +3,13 @@ import {isAddress} from 'ethers';
 
 import {getWallet} from './controller';
 
+const testAddress = (a: string) => {
+  if (!isAddress(a)) {
+    throw new Error('Not an address');
+  }
+  return a;
+};
+
 export const routes = [
   {
     method: 'GET',
@@ -16,11 +23,11 @@ export const routes = [
             .required()
             .description('The Chain ID'),
           tokenAddress: Joi.string()
-            .custom(a => isAddress(a), 'Not a valid address')
+            .custom(testAddress, 'Not a valid address')
             .required()
             .description('The token contract address'),
           walletAddress: Joi.string()
-            .custom(a => isAddress(a), 'Not a valid address')
+            .custom(testAddress, 'Not a valid address')
             .required()
             .description('The wallet address'),
         }),
