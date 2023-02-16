@@ -7,6 +7,7 @@ import * as abi from './contracts/MerkleVault.json';
 
 import {initModels} from './models';
 import {DepositModel} from './models/Deposit';
+import {WalletModel} from './models/Wallet';
 
 const provider = getDefaultProvider('http://localhost:8545/');
 const contract = new Contract(
@@ -35,7 +36,7 @@ async function connect() {
 
 async function checkDeposits(
   Deposit: ModelCtor<DepositModel>,
-  Wallet: ModelCtor<Model<any, any>>,
+  Wallet: ModelCtor<WalletModel>,
   tokenAddress: string
 ) {
   checking = true;

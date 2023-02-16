@@ -1,9 +1,8 @@
-import {getAddress, isAddress, encodeBytes32String} from 'ethers';
+import {getAddress, isAddress} from 'ethers';
 import {
   DataTypes,
   Sequelize,
   Model,
-  CreationOptional,
   InferAttributes,
   InferCreationAttributes,
 } from 'sequelize';
