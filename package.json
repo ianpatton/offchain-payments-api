@@ -6,7 +6,7 @@
     "dev": "./node_modules/nodemon/bin/nodemon.js -e ts  --exec \"npm run start\"",
     "start": "ts-node server.ts",
     "test": "lab -v **/*.test.js",
-    "integration": "npm run compile && concurrently --kill-others -s last \"npx hardhat node\" \"lab -v **/*.integration.js\"",
+    "integration": "npm run compile && concurrently --kill-others -s last \"sh startNode.sh\" \"lab -v **/*.integration.js\"",
     "lint": "gts lint",
     "clean": "gts clean",
     "compile": "tsc",
