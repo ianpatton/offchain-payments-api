@@ -2,7 +2,7 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 
 import {getDefaultProvider, Contract} from 'ethers';
-import {Model, ModelCtor, Sequelize} from 'sequelize';
+import {ModelCtor, Sequelize} from 'sequelize';
 import * as MerkleVaultJSON from './contracts/MerkleVault.json';
 
 import {initModels} from './models';
@@ -110,7 +110,7 @@ export async function checkDeposits(
           createdAt: new Date(),
         };
         // console.log('Creating Deposit', depositRaw);
-        const deposit = await Deposit.create(depositRaw, {transaction});
+        await Deposit.create(depositRaw, {transaction});
         // console.log('Created deposit', deposit.toJSON());
 
         // console.log('Checking for wallet', {
@@ -129,7 +129,7 @@ export async function checkDeposits(
           transaction,
         });
         // console.log('Wallet', wallet?.toJSON());
-        const walletUpdated = await wallet?.increment(
+        await wallet?.increment(
           {
             b: clone?.args[2],
           },
