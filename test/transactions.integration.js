@@ -30,6 +30,7 @@ const keys = {
   user3: '0x8b3a350cf5c34c9194ca85829a2df0ec3153be0318b5e2d3348e872092edffba',
   user4: '0x92db14e403b83dfe3df233f83dfa3a0d7096f21ca9b0d6d6b8d88b2b4ec1564e',
   user5: '0x4bbbf85ce3377467afe5d46f804f221813b2bb87f24d81f60f1fcdbf7cbf4356',
+  user6: '0xdbda1821b80551c9d65939329250298aa3472ba22feea921c0cf5d620ea67b97',
 };
 
 function getEIP712(doc) {
@@ -62,7 +63,7 @@ describe('API', () => {
   before(async () => {
     //wait for hardhat node to start
     await new Promise(resolve => {
-      setTimeout(resolve, 2 * 1000);
+      setTimeout(resolve, 1 * 1000);
     });
     const owner = new ethers.Wallet(keys.owner, provider);
     const merkleVaultFactory = new ethers.ContractFactory(
@@ -75,7 +76,7 @@ describe('API', () => {
       '0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC'
     );
     await new Promise(resolve => {
-      setTimeout(resolve, 0.5 * 1000);
+      setTimeout(resolve, 0.2 * 1000);
     });
     const testCoinFactory = new ethers.ContractFactory(
       TestCoinJSON.abi,
@@ -85,7 +86,7 @@ describe('API', () => {
     await testCoinFactory.deploy();
 
     await new Promise(resolve => {
-      setTimeout(resolve, 0.5 * 1000);
+      setTimeout(resolve, 0.2 * 1000);
     });
 
     const merkleVault = new ethers.Contract(
@@ -103,7 +104,7 @@ describe('API', () => {
     await merkleVault.setAllowedToken(testCoinAddress, 1);
 
     await new Promise(resolve => {
-      setTimeout(resolve, 0.5 * 1000);
+      setTimeout(resolve, 0.2 * 1000);
     });
 
     const user1 = new ethers.Wallet(keys.user1, provider);
@@ -118,7 +119,7 @@ describe('API', () => {
       await new Promise(resolve => {
         setTimeout(() => {
           testCoin.mint(users[i].address, 1 * 1e8).then(resolve);
-        }, 0.5 * 1000);
+        }, 0.2 * 1000);
       });
     }
 
@@ -129,7 +130,7 @@ describe('API', () => {
             .connect(users[i])
             .approve(merkleVaultAddress, 1 * 1e8)
             .then(resolve);
-        }, 0.5 * 1000);
+        }, 0.2 * 1000);
       });
     }
 
@@ -140,7 +141,7 @@ describe('API', () => {
             .connect(users[i])
             .depositToken(testCoinAddress, 1 * 1e8)
             .then(resolve);
-        }, 0.5 * 1000);
+        }, 0.2 * 1000);
       });
     }
 
@@ -241,11 +242,73 @@ describe('API', () => {
       expect(res.statusCode).to.equal(200);
     });
 
+    it('should not accept signed transfers exceeding balance', async () => {
+      const user1 = new ethers.Wallet(keys.user1, provider);
+      const user2 = new ethers.Wallet(keys.user2, provider);
+
+      const payload = {
+        cid: `0x${(31337).toString(16)}`,
+        type: 't',
+        from: user1.address,
+        token: testCoinAddress,
+        nonce: `0x${(1).toString(16)}`,
+        to: user2.address,
+        val: `0x${(1e8).toString(16)}`,
+      };
+
+      const eip712 = getEIP712(payload);
+
+      const signature = await user1.signTypedData(
+        eip712.domain,
+        eip712.types,
+        eip712.message
+      );
+      payload.sig = signature;
+
+      const res = await service.inject({
+        method: 'POST',
+        url: '/api/transaction',
+        payload,
+      });
+      expect(res.statusCode).to.equal(500);
+    });
+
+    it('should accept signed transfers to unknown address', async () => {
+      const user1 = new ethers.Wallet(keys.user1, provider);
+      const user6 = new ethers.Wallet(keys.user6, provider);
+
+      const payload = {
+        cid: `0x${(31337).toString(16)}`,
+        type: 't',
+        from: user1.address,
+        token: testCoinAddress,
+        nonce: `0x${(1).toString(16)}`,
+        to: user6.address,
+        val: `0x${(1).toString(16)}`,
+      };
+
+      const eip712 = getEIP712(payload);
+
+      const signature = await user1.signTypedData(
+        eip712.domain,
+        eip712.types,
+        eip712.message
+      );
+      payload.sig = signature;
+
+      const res = await service.inject({
+        method: 'POST',
+        url: '/api/transaction',
+        payload,
+      });
+      expect(res.statusCode).to.equal(200);
+    });
+
     it('should accept 100 signed transfers', async () => {
       const user1 = new ethers.Wallet(keys.user1, provider);
       const user2 = new ethers.Wallet(keys.user2, provider);
 
-      for (let i = 1; i < 101; i++) {
+      for (let i = 2; i < 102; i++) {
         const payload = {
           cid: `0x${(31337).toString(16)}`,
           type: 't',

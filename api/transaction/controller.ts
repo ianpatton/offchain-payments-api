@@ -61,7 +61,7 @@ export async function newTransaction(req: Request, h: ResponseToolkit) {
     }
 
     const result = await app.db.transaction(async transaction => {
-      const [sendingWallet, receivingWallet] = await Promise.all([
+      const [sendingWallet, [receivingWallet]] = await Promise.all([
         app.db.models.Wallet.findOne({
           where: {
             cid: BigInt(cid),
@@ -72,14 +72,31 @@ export async function newTransaction(req: Request, h: ResponseToolkit) {
           },
           transaction,
         }),
-        app.db.models.Wallet.findOne({
+        app.db.models.Wallet.findOrCreate({
           where: {cid: BigInt(cid), t: tokenChksum, a: toChksum},
+          defaults: {
+            n: 0,
+            b: 0,
+          },
           transaction,
         }),
       ]);
 
-      if (!sendingWallet || !receivingWallet) {
-        throw new Error('Could not get wallet instances');
+      if (!sendingWallet) {
+        throw new Error(
+          `Could not get sending wallet: chain:${BigInt(
+            cid
+          )}, token:${tokenChksum} address:${fromChksum} nonce:${BigInt(
+            nonce
+          )} balance: >= ${BigInt(val)}`
+        );
+      }
+      if (!receivingWallet) {
+        throw new Error(
+          `Could not get receiving wallet: chain:${BigInt(
+            cid
+          )}, token:${tokenChksum} address:${toChksum} `
+        );
       }
 
       // console.log('Sending Wallet', sendingWallet.toJSON());
