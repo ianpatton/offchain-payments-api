@@ -2,7 +2,6 @@ import {
   DataTypes,
   Sequelize,
   Model,
-  CreationOptional,
   InferAttributes,
   InferCreationAttributes,
 } from 'sequelize';
