@@ -6,5 +6,11 @@
     "skipLibCheck": true,
     "resolveJsonModule": true
   },
-  "include": ["src/**/*.ts", "test/**/*.ts", "server.ts", "service.ts"]
+  "include": [
+    "src/**/*.ts",
+    "test/**/*.ts",
+    "server.ts",
+    "service.ts",
+    "deposit-monitor.ts"
+  ]
 }

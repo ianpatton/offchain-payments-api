@@ -3,7 +3,7 @@ dotenv.config();
 
 import {getDefaultProvider, Contract} from 'ethers';
 import {Model, ModelCtor, Sequelize} from 'sequelize';
-import * as abi from './contracts/MerkleVault.json';
+import * as MerkleVaultJSON from './contracts/MerkleVault.json';
 
 import {initModels} from './models';
 import {DepositModel} from './models/Deposit';
@@ -12,7 +12,7 @@ import {WalletModel} from './models/Wallet';
 const provider = getDefaultProvider('http://localhost:8545/');
 const contract = new Contract(
   '0x5FbDB2315678afecb367f032d93F642f64180aa3',
-  abi,
+  MerkleVaultJSON.abi,
   provider
 );
 
@@ -27,17 +27,18 @@ const sequelize = new Sequelize(
   }
 );
 
-async function connect() {
+export async function connect() {
   await sequelize.authenticate();
   const models = initModels(sequelize);
   await sequelize.sync();
   return models;
 }
 
-async function checkDeposits(
+export async function checkDeposits(
   Deposit: ModelCtor<DepositModel>,
   Wallet: ModelCtor<WalletModel>,
-  tokenAddress: string
+  tokenAddress: string,
+  requiredConfirmations = 15
 ) {
   checking = true;
   const {chainId} = await provider.getNetwork();
@@ -55,7 +56,7 @@ async function checkDeposits(
     lastBlockNumber = lastDeposit.blockNumber;
   }
 
-  const confirmedHeight = currentBlockNumber - 15;
+  const confirmedHeight = currentBlockNumber - requiredConfirmations;
 
   if (lastBlockNumber + 1 <= confirmedHeight === false) {
     checking = false;
@@ -108,26 +109,26 @@ async function checkDeposits(
           v: clone?.args[2],
           createdAt: new Date(),
         };
-        console.log('Creating Deposit', depositRaw);
+        // console.log('Creating Deposit', depositRaw);
         const deposit = await Deposit.create(depositRaw, {transaction});
-        console.log('Created deposit', deposit.toJSON());
+        // console.log('Created deposit', deposit.toJSON());
 
-        console.log('Checking for wallet', {
-          cid: chainId,
-          t: clone?.args[0],
-          a: clone?.args[1],
-        });
+        // console.log('Checking for wallet', {
+        //   cid: chainId,
+        //   t: clone?.args[0],
+        //   a: clone?.args[1],
+        // });
 
         await Wallet.findOrCreate({
           where: {cid: chainId, t: clone?.args[0], a: clone?.args[1]},
           transaction,
         });
-        console.log('Incrementing wallet...');
+        // console.log('Incrementing wallet...');
         const wallet = await Wallet.findOne({
           where: {cid: chainId, t: clone?.args[0], a: clone?.args[1]},
           transaction,
         });
-        console.log('Wallet', wallet?.toJSON());
+        // console.log('Wallet', wallet?.toJSON());
         const walletUpdated = await wallet?.increment(
           {
             b: clone?.args[2],
@@ -143,7 +144,7 @@ async function checkDeposits(
         );
 
         // console.log('Deposit', deposit);
-        console.log('Wallet Updated', walletUpdated?.toJSON());
+        // console.log('Wallet Updated', walletUpdated?.toJSON());
       }
     });
 

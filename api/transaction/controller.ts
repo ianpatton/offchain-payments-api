@@ -82,8 +82,8 @@ export async function newTransaction(req: Request, h: ResponseToolkit) {
         throw new Error('Could not get wallet instances');
       }
 
-      console.log('Sending Wallet', sendingWallet.toJSON());
-      console.log('Receiving Wallet', receivingWallet.toJSON());
+      // console.log('Sending Wallet', sendingWallet.toJSON());
+      // console.log('Receiving Wallet', receivingWallet.toJSON());
 
       const [sender, receiver, tx] = await Promise.all([
         app.db.models.Wallet.update(
@@ -128,8 +128,8 @@ export async function newTransaction(req: Request, h: ResponseToolkit) {
         ),
       ]);
 
-      console.log('Updated sender', sender);
-      console.log('Updated receiver', receiver);
+      // console.log('Updated sender', sender);
+      // console.log('Updated receiver', receiver);
 
       return {sender, receiver, tx};
     });
